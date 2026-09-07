@@ -1,0 +1,8 @@
+__pycache__/
+*.py[cod]
+
+.venv/
+venv/
+
+aether_state.json
+aether_backend_state.json
