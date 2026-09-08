@@ -1,0 +1,17 @@
+node_modules
+dist
+.vercel
+.git
+__pycache__
+*.pyc
+*.pyo
+*.pyd
+.venv
+venv
+tests
+aether_backend_state.json
+investolingo.db
+investolingo.db-*
+.env
+.env.local
+.env.production

@@ -6,3 +6,15 @@ venv/
 
 aether_state.json
 aether_backend_state.json
+investolingo.db
+investolingo.db-*
+.env
+.env.local
+.env.production
+
+.vercel
+.env*
+
+node_modules/
+dist/
+.python-version
