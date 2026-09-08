@@ -43,8 +43,11 @@ Point the front end at a different engine with `AETHER_BACKEND_URL`
 
 ## Tests
 
+The suite imports the engine as a top-level module, so run it from inside
+`backend/`:
+
 ```bash
-python3 -m unittest -v backend/test_aether_backend_v4.py
+cd backend && python3 -m unittest -v test_aether_backend_v4
 ```
 
 Covers deterministic advancement, buy/sell with commission, mission unlocks,
@@ -101,7 +104,13 @@ can be re-pulled.
 | Terminal | `CountUp` valuations, ledger flash on every price tick, `ClickSpark` on interaction |
 | Commissions | Engraved seal struck in on award, with a posted notice |
 
-Every animation is disabled under `prefers-reduced-motion`.
+Under `prefers-reduced-motion`, CSS transitions and keyframes (the ledger
+flash, the seal strike, the toast slide) are reduced to nothing, the pinned
+scroll sequence is skipped entirely — the figure renders finished, with every
+note expanded — and the commission demonstration on the prospectus awards all
+three seals at once instead of in sequence. The vendored React Bits components
+remain scroll-linked rather than autonomous, so they advance only as the reader
+scrolls.
 
 ### Progression
 

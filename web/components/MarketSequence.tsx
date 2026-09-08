@@ -65,6 +65,7 @@ const SHOCK_X = 480;
 export function MarketSequence() {
   const root = useRef<HTMLDivElement>(null);
   const [step, setStep] = useState(0);
+  const [reduced, setReduced] = useState(false);
 
   useGSAP(
     () => {
@@ -74,6 +75,17 @@ export function MarketSequence() {
       if (!line || !shock || !sweep) return;
 
       const length = line.getTotalLength();
+
+      // Under reduced motion the figure is presented finished: the line fully
+      // drawn, the shock marked, and every note expanded — no pin, no scrub.
+      if (window.matchMedia("(prefers-reduced-motion: reduce)").matches) {
+        gsap.set(line, { strokeDasharray: "none", strokeDashoffset: 0 });
+        gsap.set(shock, { opacity: 1, scale: 1, transformOrigin: "center" });
+        gsap.set(sweep, { opacity: 0 });
+        setReduced(true);
+        return;
+      }
+
       gsap.set(line, { strokeDasharray: length, strokeDashoffset: length });
       gsap.set(shock, { opacity: 0, scale: 0.4, transformOrigin: "center" });
 
@@ -115,7 +127,7 @@ export function MarketSequence() {
 
           <ol className="space-y-4">
             {STEPS.map((s, i) => {
-              const active = i === step;
+              const active = reduced || i === step;
               return (
                 <li
                   key={s.label}
