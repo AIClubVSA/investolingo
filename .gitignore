@@ -6,3 +6,6 @@ venv/
 
 aether_state.json
 aether_backend_state.json
+
+# v4 engine state written at runtime
+aether_v4_state.json

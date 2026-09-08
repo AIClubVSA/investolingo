@@ -1,0 +1,232 @@
+@import "tailwindcss";
+
+/* ============================================================
+   TradeQuest design tokens
+   Flat, institutional, ledger-inspired. One accent (brass).
+   No gradients anywhere — surfaces are separated by hairlines.
+   ============================================================ */
+
+:root {
+  /* Ink scale — cool near-black through to paper */
+  --ink-900: #080b10;
+  --ink-800: #0d1218;
+  --ink-700: #121922;
+  --ink-600: #18212c;
+  --ink-500: #1f2a37;
+
+  /* Hairlines */
+  --line: #212c39;
+  --line-strong: #35455a;
+
+  /* Type */
+  --text: #e8edf3;
+  --text-muted: #93a2b4;
+  --text-faint: #64748b;
+
+  /* Single accent — brass. Used sparingly: rules, marks, one CTA. */
+  --brass: #b8933a;
+  --brass-bright: #d4ac48;
+  --brass-dim: #6b5522;
+
+  /* Market semantics — desaturated, never neon */
+  --gain: #3e9d74;
+  --loss: #c4574a;
+  --warn: #b8933a;
+
+  --background: var(--ink-900);
+  --foreground: var(--text);
+}
+
+@theme inline {
+  --color-background: var(--background);
+  --color-foreground: var(--foreground);
+
+  --color-ink-900: var(--ink-900);
+  --color-ink-800: var(--ink-800);
+  --color-ink-700: var(--ink-700);
+  --color-ink-600: var(--ink-600);
+  --color-ink-500: var(--ink-500);
+
+  --color-line: var(--line);
+  --color-line-strong: var(--line-strong);
+
+  --color-text: var(--text);
+  --color-muted: var(--text-muted);
+  --color-faint: var(--text-faint);
+
+  --color-brass: var(--brass);
+  --color-brass-bright: var(--brass-bright);
+  --color-brass-dim: var(--brass-dim);
+
+  --color-gain: var(--gain);
+  --color-loss: var(--loss);
+  --color-warn: var(--warn);
+
+  --font-display: var(--font-garamond), Georgia, "Times New Roman", serif;
+  --font-sans: var(--font-lato), system-ui, -apple-system, sans-serif;
+  --font-mono: var(--font-plex-mono), ui-monospace, "SF Mono", Menlo, monospace;
+}
+
+* {
+  border-color: var(--line);
+}
+
+body {
+  background: var(--ink-900);
+  color: var(--text);
+  font-family: var(--font-sans);
+  font-size: 16px;
+  line-height: 1.6;
+  -webkit-font-smoothing: antialiased;
+}
+
+/* All figures align in columns — essential for a price board. */
+.tabular {
+  font-family: var(--font-mono);
+  font-variant-numeric: tabular-nums;
+  font-feature-settings: "tnum";
+}
+
+/* Editorial small-caps label used above section headings. */
+.eyebrow {
+  font-family: var(--font-sans);
+  font-size: 0.6875rem;
+  font-weight: 700;
+  letter-spacing: 0.18em;
+  text-transform: uppercase;
+  color: var(--text-faint);
+}
+
+.rule-brass {
+  border-top: 1px solid var(--brass-dim);
+}
+
+/* Faint engraved grid — replaces the usual glow/gradient backdrop. */
+.engraved {
+  background-image: linear-gradient(
+      to right,
+      color-mix(in srgb, var(--line) 55%, transparent) 1px,
+      transparent 1px
+    ),
+    linear-gradient(
+      to bottom,
+      color-mix(in srgb, var(--line) 55%, transparent) 1px,
+      transparent 1px
+    );
+  background-size: 72px 72px;
+}
+
+/* Visible focus for keyboard users on every interactive element. */
+:where(a, button, input, select, [tabindex]):focus-visible {
+  outline: 2px solid var(--brass-bright);
+  outline-offset: 2px;
+  border-radius: 2px;
+}
+
+::selection {
+  background: var(--brass-dim);
+  color: var(--text);
+}
+
+/* Slim, monochrome scrollbars so panels read as instrument surfaces. */
+::-webkit-scrollbar {
+  width: 10px;
+  height: 10px;
+}
+::-webkit-scrollbar-track {
+  background: var(--ink-800);
+}
+::-webkit-scrollbar-thumb {
+  background: var(--ink-500);
+  border: 2px solid var(--ink-800);
+}
+::-webkit-scrollbar-thumb:hover {
+  background: var(--line-strong);
+}
+
+/* ---------- Gamification motion ---------- */
+
+@keyframes tq-ledger-flash-gain {
+  0% {
+    background-color: color-mix(in srgb, var(--gain) 26%, transparent);
+  }
+  100% {
+    background-color: transparent;
+  }
+}
+
+@keyframes tq-ledger-flash-loss {
+  0% {
+    background-color: color-mix(in srgb, var(--loss) 26%, transparent);
+  }
+  100% {
+    background-color: transparent;
+  }
+}
+
+.flash-gain {
+  animation: tq-ledger-flash-gain 700ms ease-out;
+}
+.flash-loss {
+  animation: tq-ledger-flash-loss 700ms ease-out;
+}
+
+@keyframes tq-seal-in {
+  0% {
+    opacity: 0;
+    transform: scale(1.35) rotate(-6deg);
+  }
+  60% {
+    opacity: 1;
+    transform: scale(0.96) rotate(1deg);
+  }
+  100% {
+    opacity: 1;
+    transform: scale(1) rotate(0deg);
+  }
+}
+
+.seal-in {
+  animation: tq-seal-in 620ms cubic-bezier(0.22, 1, 0.36, 1) both;
+}
+
+@keyframes tq-slide-in {
+  from {
+    opacity: 0;
+    transform: translateX(16px);
+  }
+  to {
+    opacity: 1;
+    transform: translateX(0);
+  }
+}
+
+.slide-in {
+  animation: tq-slide-in 320ms cubic-bezier(0.22, 1, 0.36, 1) both;
+}
+
+@keyframes tq-tick {
+  0%,
+  100% {
+    opacity: 1;
+  }
+  50% {
+    opacity: 0.25;
+  }
+}
+
+.tick {
+  animation: tq-tick 1.6s ease-in-out infinite;
+}
+
+/* Honour reduced-motion: strip transforms, keep content legible. */
+@media (prefers-reduced-motion: reduce) {
+  *,
+  *::before,
+  *::after {
+    animation-duration: 0.01ms !important;
+    animation-iteration-count: 1 !important;
+    transition-duration: 0.01ms !important;
+    scroll-behavior: auto !important;
+  }
+}

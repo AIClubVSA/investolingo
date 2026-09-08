@@ -1,0 +1,17 @@
+{
+  "version": "0.0.1",
+  "configurations": [
+    {
+      "name": "tradequest-web",
+      "runtimeExecutable": "npm",
+      "runtimeArgs": ["--prefix", "/Users/aaravnadig/Desktop/tradequest/web", "run", "dev"],
+      "port": 3000
+    },
+    {
+      "name": "tradequest-engine",
+      "runtimeExecutable": "python3",
+      "runtimeArgs": ["/Users/aaravnadig/Desktop/tradequest/backend/aether_backend_v4.py", "--server", "--port", "8000"],
+      "port": 8000
+    }
+  ]
+}
