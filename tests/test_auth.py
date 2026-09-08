@@ -212,6 +212,9 @@ def test_registration_sends_email_through_resend(app_factory, monkeypatch):
     assert sent[0][1]["json"]["from"] == "notifications@example.com"
     assert sent[0][1]["json"]["to"] == ["delivery@example.com"]
     assert sent[0][1]["headers"]["Authorization"] == "Bearer re_test"
+    assert "html" in sent[0][1]["json"]
+    assert "🌿" in sent[0][1]["json"]["html"]
+    assert "TradeQuest" in sent[0][1]["json"]["html"]
 
 
 def test_registration_sends_email_through_brevo(app_factory, monkeypatch):
@@ -240,3 +243,6 @@ def test_registration_sends_email_through_brevo(app_factory, monkeypatch):
     assert sent[0][0] == "https://api.brevo.com/v3/smtp/email"
     assert sent[0][1]["json"]["to"] == [{"email": "brevo@example.com"}]
     assert sent[0][1]["headers"]["api-key"] == "xkeysib-test"
+    assert "htmlContent" in sent[0][1]["json"]
+    assert "🌿" in sent[0][1]["json"]["htmlContent"]
+    assert "TradeQuest" in sent[0][1]["json"]["htmlContent"]

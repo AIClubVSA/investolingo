@@ -345,6 +345,75 @@ def new_session(ctx, user=None):
     return {"user": public_user(user) if user else None, "csrf_token": ctx.session.csrf}
 
 
+def _build_email_body(user_name, purpose, link, token):
+    action = "verify your email" if purpose == "verify" else "reset your password"
+    accent = "#087b70"
+    navy = "#20334b"
+    muted = "#59677b"
+    mint = "#e3f4ed"
+    paper = "#ffffff"
+    border = "#dce2eb"
+    return f"""<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8" />
+<meta name="viewport" content="width=device-width, initial-scale=1.0" />
+<title>TradeQuest</title>
+<style>
+  @import url('https://fonts.googleapis.com/css2?family=Nunito:wght@700;800;900&family=DM+Sans:wght@400;500;700&display=swap');
+</style>
+</head>
+<body style="margin:0;padding:0;background:#f5f7fb;font-family:'DM Sans',Arial,sans-serif;color:{navy};">
+  <table role="presentation" width="100%" cellpadding="0" cellspacing="0" border="0" style="background:#f5f7fb;">
+    <tr><td align="center" style="padding:40px 16px;">
+      <table role="presentation" width="560" cellpadding="0" cellspacing="0" border="0" style="max-width:560px;width:100%;background:{paper};border-radius:20px;border:1px solid {border};overflow:hidden;">
+        <!-- Header -->
+        <tr><td style="padding:36px 32px 24px;text-align:center;">
+          <table role="presentation" cellpadding="0" cellspacing="0" border="0" style="margin:0 auto;">
+            <tr>
+              <td style="width:44px;height:44px;background:{accent};border-radius:12px;text-align:center;vertical-align:middle;transform:rotate(-5deg);">
+                <span style="color:#fff;font-size:22px;line-height:44px;display:block;">🌿</span>
+              </td>
+              <td style="padding-left:12px;font-family:'Nunito',Arial Black,sans-serif;font-size:22px;font-weight:900;color:{navy};letter-spacing:-0.5px;">
+                TradeQuest
+              </td>
+            </tr>
+          </table>
+        </td></tr>
+        <!-- Eyebrow -->
+        <tr><td style="padding:0 32px 8px;text-align:center;font-size:11px;letter-spacing:1.8px;font-weight:800;text-transform:uppercase;color:{accent};font-family:'Nunito',Arial,sans-serif;">
+          Small lessons. Bigger perspective.
+        </td></tr>
+        <!-- Title -->
+        <tr><td style="padding:0 32px 16px;text-align:center;font-family:'Nunito',Arial,sans-serif;font-size:26px;font-weight:900;color:{navy};letter-spacing:-1px;line-height:1.2;">
+          {action.capitalize()}
+        </td></tr>
+        <!-- Body -->
+        <tr><td style="padding:0 32px 28px;font-size:15px;line-height:1.75;color:{muted};">
+          <p style="margin:0 0 18px 0;">Hi {user_name},</p>
+          <p style="margin:0 0 18px 0;">Tap the button below to {action}.</p>
+          <p style="margin:0 0 24px 0;text-align:center;">
+            <a href="{link}" style="display:inline-block;padding:14px 28px;background:{accent};color:#fff;text-decoration:none;border-radius:12px;font-weight:700;font-size:15px;font-family:'Nunito',Arial,sans-serif;box-shadow:0 3px 0 #075f57;">{action.capitalize()}</a>
+          </p>
+          <p style="margin:0 0 12px 0;font-size:13px;color:{muted};">Or paste this one-time token into the app:</p>
+          <p style="margin:0;padding:14px 18px;background:{mint};border-radius:10px;font-family:monospace;font-size:14px;color:#196155;font-weight:700;word-break:break-all;text-align:center;">
+            {token}
+          </p>
+        </td></tr>
+        <!-- Divider -->
+        <tr><td style="padding:0 32px;"><hr style="border:0;border-top:1px solid {border};margin:0;" /></td></tr>
+        <!-- Footer -->
+        <tr><td style="padding:20px 32px 36px;text-align:center;font-size:12px;color:#9aa3b2;line-height:1.6;">
+          Didn’t request this? You can safely ignore it.<br />
+          <span style="color:{muted};font-weight:700;">TradeQuest</span> — Learn money, grow confidence.
+        </td></tr>
+      </table>
+    </td></tr>
+  </table>
+</body>
+</html>"""
+
+
 def issue_email(ctx, user, purpose):
     ctx.db.execute(delete(EmailToken).where(EmailToken.user_id == user.id, EmailToken.purpose == purpose))
     token = secrets.token_urlsafe(32)
@@ -354,7 +423,9 @@ def issue_email(ctx, user, purpose):
     subject = "TradeQuest: " + ("verify your email" if purpose == "verify" else "reset your password")
     # Fragment tokens stay out of access logs and Referer headers.
     link = config.base_url + "/#" + urlencode({"action": "verify-email" if purpose == "verify" else "reset-password", "token": token})
-    content = f"Open TradeQuest to {'verify your email' if purpose == 'verify' else 'reset your password'}:\n{link}\n\nOr enter this one-time token in the app:\n{token}\n\nIgnore this message if you did not request it."
+    action = "verify your email" if purpose == "verify" else "reset your password"
+    text_content = f"Open TradeQuest to {action}:\n{link}\n\nOr enter this one-time token in the app:\n{token}\n\nIgnore this message if you did not request it."
+    html_body = _build_email_body(user.name, purpose, link, token)
     if config.brevo_api_key or config.resend_api_key or config.sendgrid_api_key or config.smtp_host:
         try:
             if config.brevo_api_key:
@@ -369,7 +440,8 @@ def issue_email(ctx, user, purpose):
                         "sender": {"email": config.smtp_from},
                         "to": [{"email": user.email}],
                         "subject": subject,
-                        "textContent": content,
+                        "htmlContent": html_body,
+                        "textContent": text_content,
                     },
                     timeout=10,
                 )
@@ -378,7 +450,7 @@ def issue_email(ctx, user, purpose):
                 response = httpx.post(
                     "https://api.resend.com/emails",
                     headers={"Authorization": f"Bearer {config.resend_api_key}"},
-                    json={"from": config.smtp_from, "to": [user.email], "subject": subject, "text": content},
+                    json={"from": config.smtp_from, "to": [user.email], "subject": subject, "html": html_body, "text": text_content},
                     timeout=10,
                 )
                 response.raise_for_status()
@@ -390,7 +462,10 @@ def issue_email(ctx, user, purpose):
                         "personalizations": [{"to": [{"email": user.email}]}],
                         "from": {"email": config.smtp_from},
                         "subject": subject,
-                        "content": [{"type": "text/plain", "value": content}],
+                        "content": [
+                            {"type": "text/plain", "value": text_content},
+                            {"type": "text/html", "value": html_body},
+                        ],
                     },
                     timeout=10,
                 )
@@ -400,7 +475,8 @@ def issue_email(ctx, user, purpose):
                 message["From"] = config.smtp_from
                 message["To"] = user.email
                 message["Subject"] = subject
-                message.set_content(content)
+                message.set_content(text_content)
+                message.add_alternative(html_body, subtype="html")
                 client = smtplib.SMTP_SSL if config.smtp_ssl else smtplib.SMTP
                 kwargs = {"context": ssl.create_default_context()} if config.smtp_ssl else {}
                 with client(config.smtp_host, config.smtp_port, timeout=10, **kwargs) as server:
